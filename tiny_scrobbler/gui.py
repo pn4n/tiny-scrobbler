@@ -5,13 +5,17 @@ import os
 appimage_base_path = os.environ.get("APPDIR", os.getcwd())
 app_path = lambda x: os.path.join(appimage_base_path, x)
 
-def run_app(login_callback):
+logo_scaled_w, logo_scaled_h = 0, 0
+btn_w = 200
+indent = 20
 
-	logo_width, logo_height, channels, data = dpg.load_image(app_path("src/last.png"))
+def run_app(callback):
 
+	logo_width, logo_height, _, data = dpg.load_image(app_path("src/last.png"))
+
+	global logo_scaled_h, logo_scaled_w
 	logo_scaled_w = W.logo_scale * logo_width 
 	logo_scaled_h = W.logo_scale * logo_height
-
 
 	with dpg.texture_registry(show=False):
 		dpg.add_static_texture(width=logo_width, 
@@ -31,14 +35,11 @@ def run_app(login_callback):
 					  height=logo_scaled_h,
 					  pos=[(W.width - logo_scaled_w) / 2, 
 					  	   (W.height - logo_scaled_h) / 2 - 35],)
-		button_w = 200
-		dpg.add_button(label="Log in", width = button_w, 
-					   callback=login_callback,
+		dpg.add_button(label="Log in", width = btn_w, 
+					   callback=callback,
 					   tag='main btn',
-					   pos=[(W.width - button_w) / 2, 
+					   pos=[(W.width - btn_w) / 2, 
 					   		(W.height - logo_scaled_h) / 2 + logo_scaled_h])
-					   		# (W.height - logo_scaled_h) / 2 + logo_height - 35])
-		
 
 	with dpg.theme() as global_theme:
 		with dpg.theme_component(dpg.mvAll):
@@ -80,3 +81,17 @@ def run_app(login_callback):
 	dpg.set_primary_window("primary window", True)
 	dpg.start_dearpygui()
 	dpg.destroy_context()
+
+def add_check_auth_btn(callback):
+	dpg.configure_item('main btn',
+					pos=[(W.width - indent) / 2 - btn_w, 
+						 (W.height - logo_scaled_h) / 2 + logo_scaled_h])
+	
+	dpg.add_button(label="Check auth", 
+				parent="primary window",
+				width=btn_w, 
+				callback=callback,
+				tag='check btn',
+				pos=[(W.width + indent) / 2, 
+					 (W.height - logo_scaled_h) / 2 + logo_scaled_h])
+

@@ -5,5 +5,6 @@ def handle_error(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            W.set_status(text=' ', previous_res=str(e))
+            W.set_status(text=str(e), error=True)
+            raise Exception('error')
     return wrapper

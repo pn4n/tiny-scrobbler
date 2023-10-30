@@ -17,21 +17,22 @@ class Window():
 		previous_res (int, optional): The previous response code, displayed in status bar if it's not equal 200.
 		loading (bool, optional): Whether to show a loading spinner. Defaults to True.
 	'''
-	def set_status(self, text, previous_res=200, loading=True):
-		if previous_res != 200:
-			try: #assuming spinner and bar exist
+	def set_status(self, text, error=False, loading=True):
+		if error:
+
+			if not self.status_bar:
+				self.__create_status__(f"Error: {text}", loading=False)
+			else:
 				dpg.configure_item('spinner', show=False)
-				dpg.set_value('status bar', f"Error: {previous_res}")
-			except:
-				if not self.status_bar:
-					self.__create_status__(f"Error: {previous_res}", loading=False)
+				dpg.set_value('status bar', f"Error: {text}")
+
 		else:
-			try:
+			if not self.status_bar:
+				self.__create_status__(text, loading=loading)
+			else:
 				dpg.set_value("status bar", text)
 				dpg.configure_item('spinner', show=loading)
-			except:
-				if not self.status_bar:
-					self.__create_status__(text, loading=True)
+
 	'''
 	Create the status bar.
 	Parameters:
