@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=Hello World
+Name=TinyScrobbler
 Exec=AppRun
 Icon=icon
 Categories=Utility;

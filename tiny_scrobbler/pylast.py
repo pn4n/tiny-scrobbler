@@ -3,6 +3,9 @@ import webbrowser
 from hashlib import md5
 import urllib3
 
+import exceptions
+import config
+
 class PyLast():
 	__TOKEN__ = ""
 
@@ -18,6 +21,7 @@ class PyLast():
 
 		self.__http__ = urllib3.PoolManager()
 
+	@exceptions.handle_error
 	def request_token(self):
 		url = f'http://ws.audioscrobbler.com/2.0/?\
 method=auth.gettoken&\
@@ -30,6 +34,7 @@ format=json'
 			self.__TOKEN__ = TOKEN
 		return req_response.status
 
+	@exceptions.handle_error
 	def authorize(self):
 		if not self.__is_authorized__:
 			url = f'http://www.last.fm/api/auth/?\
@@ -40,7 +45,7 @@ token={self.__TOKEN__}'
 			# Make sure authorized
 			# self.__is_authorized__ = True
 
-
+	@exceptions.handle_error
 	def start_session(self):
 		if self.__is_authorized__:
 			data = f"api_key{self.__API_KEY__,}\
@@ -76,5 +81,4 @@ artist=cher&track=believe&format=json'
 		else:
 			print("Not authorized!") 
 
-
-last = PyLast("2c67a85abd03a98422f8bd465d8286f8", "b4655bf3f4cbe91f4ac758982fd5012a")
+last = PyLast(config.API_KEY, config.API_SECRET, config.SESSION_KEY)
