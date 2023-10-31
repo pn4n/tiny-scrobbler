@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import dearpygui.dearpygui as dpg
-from pylast import last
+from pylastC import last
 
 import gui
 from window import W
