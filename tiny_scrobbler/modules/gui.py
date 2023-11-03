@@ -9,7 +9,7 @@ logo_scaled_w, logo_scaled_h = 0, 0
 btn_w = 200
 indent = 20
 
-def run_app(callback):
+def run_app(callback, is_valid_app):
 
 	logo_width, logo_height, _, data = dpg.load_image(app_path("src/last.png"))
 
@@ -37,9 +37,13 @@ def run_app(callback):
 					  	   (W.height - logo_scaled_h) / 2 - 35],)
 		dpg.add_button(label="Log in", width = btn_w, 
 					   callback=callback,
+					   enabled=is_valid_app,
 					   tag='main btn',
 					   pos=[(W.width - btn_w) / 2, 
 					   		(W.height - logo_scaled_h) / 2 + logo_scaled_h])
+	
+	if not is_valid_app:
+		W.set_status(text="Invalid API keys in config.py or config.json", error=True)
 
 	with dpg.theme() as global_theme:
 		with dpg.theme_component(dpg.mvAll):
@@ -82,16 +86,18 @@ def run_app(callback):
 	dpg.start_dearpygui()
 	dpg.destroy_context()
 
-def add_check_auth_btn(callback):
-	dpg.configure_item('main btn',
-					pos=[(W.width - indent) / 2 - btn_w, 
-						 (W.height - logo_scaled_h) / 2 + logo_scaled_h])
+	# raise Exception("Invalid API keys [config.py]")
+
+# def add_check_auth_btn(callback):
+# 	dpg.configure_item('main btn',
+# 					pos=[(W.width - indent) / 2 - btn_w, 
+# 						 (W.height - logo_scaled_h) / 2 + logo_scaled_h])
 	
-	dpg.add_button(label="Check auth", 
-				parent="primary window",
-				width=btn_w, 
-				callback=callback,
-				tag='check btn',
-				pos=[(W.width + indent) / 2, 
-					 (W.height - logo_scaled_h) / 2 + logo_scaled_h])
+# 	dpg.add_button(label="Check auth", 
+# 				parent="primary window",
+# 				width=btn_w, 
+# 				callback=callback,
+# 				tag='check btn',
+# 				pos=[(W.width + indent) / 2, 
+# 					 (W.height - logo_scaled_h) / 2 + logo_scaled_h])
 

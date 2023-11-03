@@ -1,2 +1,4 @@
 API_KEY = ''
 API_SECRET = ''
+SESSION_KEY = ''
+TOKEN = None
