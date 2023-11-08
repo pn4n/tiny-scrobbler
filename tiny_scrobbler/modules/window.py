@@ -1,4 +1,4 @@
-import dearpygui.dearpygui as dpg
+import dearpygui.dearpygui as dpg	
 
 #common winodw properties that used across the app
 class Window():
@@ -6,9 +6,27 @@ class Window():
 	height = 250
 	logo_scale = 0.7
 	
-	def __init__(self): self.status_bar = False
-
-	def get_status(self): return self.status_bar
+	def __init__(self): self.status_bar = None
+	
+	def __create_status_bar__(self):
+		self.status_rect = dpg.draw_rectangle ( parent='primary window',
+												show=False,
+												pmin=[-20, self.height - 50],
+												pmax=[self.width, self.height],
+												color=(0,0,0, 55),
+												fill=(0,0,0, 55) )
+		
+		with dpg.group( parent='primary window', show=False,
+				  		horizontal=True, pos=[10, self.height - 35]
+					  ) as status_bar:
+				dpg.add_loading_indicator( tag='spinner',
+											show=False,
+											color=(255,255,255,255),
+											secondary_color=(255,255,255,103),
+											radius=1.2,
+											thickness=0.2)
+				dpg.add_text('status text', tag='status text')
+		self.status_bar = status_bar
 
 	'''
 	Set the status of the application.
@@ -18,41 +36,25 @@ class Window():
 		loading (bool, optional): Whether to show a loading spinner. Defaults to True.
 	'''
 	def set_status(self, text, error=False, loading=True):
-		if error:
 
-			if not self.status_bar:
-				self.__create_status__(f"Error: {text}", loading=False)
-			else:
-				dpg.configure_item('spinner', show=False)
-				dpg.set_value('status bar', f"Error: {text}")
+		if not self.status_bar:
+			self.__create_status_bar__()
+
+		if error:
+			dpg.configure_item('spinner', show=False)
+			dpg.set_value('status text', f'Error: {text}')
 
 		else:
-			if not self.status_bar:
-				self.__create_status__(text, loading=loading)
-			else:
-				dpg.set_value("status bar", text)
-				dpg.configure_item('spinner', show=loading)
+			dpg.set_value('status text', text)
+			dpg.configure_item('spinner', show=loading)
 
-	'''
-	Create the status bar.
-	Parameters:
-		text (str): The text to be displayed in the status bar.
-		loading (bool, optional): Whether to show a loading spinner.
-	'''
-	def __create_status__(self, text, loading):
-		dpg.draw_rectangle(parent='primary window',
-						   pmin=[-20, self.height - 50],
-						   pmax=[self.width, self.height],
-						   color=(0,0,0, 55),
-						   fill=(0,0,0, 55))
-		with dpg.group(horizontal=True, parent='primary window', pos=[10, self.height - 35]):
-			dpg.add_loading_indicator(tag='spinner',
-									  show=loading,
-									  color=(255,255,255,255),
-									  secondary_color=(255,255,255,103),
-									  radius=1.2,
-									  thickness=0.2)
-			dpg.add_text(text, tag="status bar")
-		self.status_bar = True
+		dpg.configure_item(self.status_bar, show=True)
+		dpg.configure_item(self.status_rect, show=True)
+		
+	
+	def hide_status(self):
+		dpg.configure_item(self.status_bar, show=False)
+		dpg.configure_item(self.status_rect, show=False)
+
 
 W = Window()

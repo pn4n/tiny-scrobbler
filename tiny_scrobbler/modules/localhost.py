@@ -45,7 +45,6 @@ class CallbackHandler(BaseHTTPRequestHandler):
             self.end_headers()
         # !!! else if self.path.startswith('/icon.png'): ###
     
-
 def run_server(port):
 
     global httpd    
@@ -72,7 +71,7 @@ def try_run_server():
 			t = threading.Thread(target=run_server, args=(i,))
 			t.start()
 			return i
-		except:
+		except OSError:
 			pass
 	raise Exception(f'No available port [ {start_port} - {end_port} ]')
 
