@@ -4,6 +4,8 @@ from last import lastfm
 from window import W
 import gui as gui
 
+from dbus import dbus_loop
+
 dpg.create_context()
 
 gui.basic_setup()
@@ -17,8 +19,12 @@ def login():
 	global main_window, login_window
 	dpg.hide_item(login_window)
 	W.hide_status()
+
 	gui.load_main_window( data = lastfm.get_info())
 	dpg.show_item(main_window)
+	dbus_loop()
+
+
 
 def logout():
 	W.set_status('logging out...')
@@ -42,8 +48,11 @@ with dpg.window(tag='primary window'):
 if lastfm.username:
 	gui.load_main_window( data = lastfm.get_info())
 	dpg.show_item(main_window)
-	# main_window = gui.main_window( data = lastfm.get_info(),
-	# 							   logout_func = lastfm.logout )
+	dbus_loop()
+	# gui.load_main_window( data = lastfm.get_info())
+	# dpg.show_item(main_window)
+
+
 else:
 	dpg.show_item(login_window)
 	if not lastfm.keys_are_valid:

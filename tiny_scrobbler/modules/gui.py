@@ -1,5 +1,6 @@
 import dearpygui.dearpygui as dpg
 from window import W
+import webbrowser
 import os
 
 appimage_base_path = os.environ.get("APPDIR", os.getcwd())
@@ -45,12 +46,18 @@ def basic_setup():
 			dpg.add_theme_color(dpg.mvThemeCol_TextSelectedBg, (200,0,0,153), category=dpg.mvThemeCat_Core)  
 
 	dpg.bind_theme(global_theme)
-
+	with dpg.theme(tag="hyperlinkTheme"):
+		with dpg.theme_component(dpg.mvButton):
+			dpg.add_theme_color(dpg.mvThemeCol_Button, [0, 0, 0, 0])
+			dpg.add_theme_color(dpg.mvThemeCol_ButtonActive, [0, 0, 0, 0])
+			dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, [200,0,0,63])
+			dpg.add_theme_color(dpg.mvThemeCol_Text, [236,29,29,200])
+			
 	dpg.create_viewport(title='Tiny Scrobbler', 
 						small_icon=app_path('src/icon_small.png'),
 						large_icon=app_path('src/icon_big.png'),
-						width=W.width, height=W.height,)
-						# resizable=False)
+						width=W.width, height=W.height,
+						resizable=False)
 
 def login_window(login_func, is_valid_app):
 	with dpg.group(parent='primary window', show=False) as stage:
@@ -81,132 +88,62 @@ def login_window(login_func, is_valid_app):
 
 
 
-	# dpg.show_style_editor()
-	# dpg.setup_dearpygui()
-	# dpg.show_viewport()
-	# dpg.set_primary_window("primary window", True)
-
-	# if not is_valid_app:
-	# 	W.set_status(text="Invalid API keys in config.py or config.json", error=True)
-	# else:
-	# 	# try to login if keys in config.json are valid
-	# 	try: 
-	# 		login_func()
-	# 	except:
-	# 		pass
-
-
-
-
-
-
-	# raise Exception("Invalid API keys [config.py]")
-
-# def add_check_auth_btn(login_func):
-# 	dpg.configure_item('main btn',
-# 					pos=[(W.width - indent) / 2 - btn_w, 
-# 						 (W.height - logo_scaled_h) / 2 + logo_scaled_h])
-	
-# 	dpg.add_button(label="Check auth", 
-# 				parent="primary window",
-# 				width=btn_w, 
-# 				login_func=login_func,
-# 				tag='check btn',
-# 				pos=[(W.width + indent) / 2, 
-# 					 (W.height - logo_scaled_h) / 2 + logo_scaled_h])
-
 def main_window(logout_func):
-	# import dearpygui.demo as demo
-	# demo.show_demo()
 	dpg.draw_rectangle( parent='primary window',
 						show=False,
 						tag='header',
 						pmin=[-5, -5],
-						pmax=[W.width, 30],
+						pmax=[W.width, 24],
 						color=(0,0,0, 55),
 						fill=(0,0,0, 55))
 	with dpg.group(parent='primary window', show=False) as stage:
 
-		with dpg.group(horizontal=True):
+			
 
-			with dpg.tab_bar():							
-				with dpg.tab(label="Scrobbling"):
-					dpg.add_text("This is the avocado tab!")
-					dpg.add_button(label="Scrobble", width=W.width)
+		with dpg.tab_bar():				
+
+			with dpg.tab(label="Scrobbling"):
+
+				with dpg.group(horizontal=True):
+					dpg.add_text("Track:")
+					dpg.add_text("This is the avocado tab!", tag='current_track_name')
 				
-				with dpg.tab(label="Settings"):
-					dpg.add_text("This is the broccoli tab!")
+				with dpg.group(horizontal=True):
+					dpg.add_text("Artist:")
+					dpg.add_text("This is the avocado tab!", tag='current_track_artist')
+				
+				with dpg.group(horizontal=True):
+					dpg.add_text("Album:")
+					dpg.add_text("This is the avocado tab!", tag='current_track_album')
+				
+				with dpg.group(horizontal=True):
+					dpg.add_text("Sender:")
+					dpg.add_text("This is the avocado tab!", tag='current_track_sender')
 
-				with dpg.tab(label="Cucumber"):
-					dpg.add_text("This is the cucumber tab!")
-			dpg.add_text('User: ')
-			dpg.add_text('username', tag="username")
-			dpg.add_button(label='logout', callback=logout_func)
+				dpg.add_button(label="Scrobble", width=W.width)
+
+
+
+			
+			with dpg.tab(label="Settings"):
+
+				with dpg.group(horizontal=True):
+					
+					dpg.add_button(label='username', tag='username')
+					dpg.bind_item_theme('username', "hyperlinkTheme")
+
+					dpg.add_button(label='logout', callback=logout_func)
+				
+				dpg.add_text("This is the broccoli tab!")
+
+			
 
 		return stage
 	
 def load_main_window(data):
+
 	print(data)
-	dpg.set_value('username', data['name'])
+	dpg.configure_item('username', label=data['name'])
+	dpg.set_item_callback('username', lambda:webbrowser.open('https://www.last.fm/user/' + data['name']))
 	dpg.configure_item('header', show=True)
 
-	# dpg.set_primary_window("primary window", True)
-	# dpg.add_group(parent='primary window', tag='header',
-	# 		      horizontal=True, )
-	# 		    #   pos=[10, 10])
-	# dpg.add_text(parent='header', str='User: ' + data['name'])
-	# dpg.add_button(parent='header', label='logout', callback=logout_func)
-
-	# dpg.add_tab_bar(parent='primary window', tag='tab bar')
-	# dpg.add_tab(parent='tab bar', label='Scrobbling')
-	# dpg.add_tab(parent='tab bar', label='Settings')
-
-
-	# with dpg.window(label="primary window"):
-
-
-	# 	with dpg.menu_bar():
-	# 		with dpg.menu(label="Themes"):
-	# 			dpg.add_menu_item(label="Dark")
-	# 			dpg.add_menu_item(label="Light")
-	# 			dpg.add_menu_item(label="Classic")
-
-	# 			with dpg.menu(label="Other Themes"):
-	# 				dpg.add_menu_item(label="Purple")
-	# 				dpg.add_menu_item(label="Gold")
-	# 				dpg.add_menu_item(label="Red")
-
-	# 		with dpg.menu(label="Tools"):
-	# 			dpg.add_menu_item(label="Show Logger")
-	# 			dpg.add_menu_item(label="Show About")
-
-	# 		with dpg.menu(label="Oddities"):
-	# 			dpg.add_button(label="A Button")
-	# 			dpg.add_simple_plot(label="Menu plot", default_value=(0.3, 0.9, 2.5, 8.9), height=80)
-
-	# # create header
-	# dpg.draw_rectangle( parent='primary window',
-	# 					pmin=[-10, 0],
-	# 					pmax=[W.width, 30],
-	# 					color=(0,0,0, 55),
-	# 					fill=(0,0,0, 55))
-	
-
-
-
-	# 	with dpg.group(horizontal=True, pos=[10, 10]):
-	# 		dpg.add_text('User: ' + data['name'], tag="header")
-	# 		dpg.add_button(label='logout', callback=logout_func)
-
-	# 	print(data)
-	# 	with dpg.tab_bar():							
-	# 		with dpg.tab(label="Scrobbling"):
-	# 			dpg.add_text("This is the avocado tab!")
-			
-	# 		with dpg.tab(label="Settings"):
-	# 			dpg.add_text("This is the broccoli tab!")
-
-	# 		with dpg.tab(label="Cucumber"):
-	# 			dpg.add_text("This is the cucumber tab!")
-	
-	

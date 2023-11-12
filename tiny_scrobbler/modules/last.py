@@ -110,11 +110,26 @@ class Lastfm():
 			}
 			response = requests.get(API_BASE, params=as_json(payload))
 
-			print(response.json())
+			print('[req] getInfo',response.json())
 
 			self.cache['userInfo'] = response.json()['user']
 		
 		return self.cache['userInfo']
+	
+	@handle_error
+	def get_recent(self):
+
+		payload = {
+			'method': 'user.getRecentTracks',
+			'api_key': self.__API_KEY__,
+			'username': self.username,
+			'limit': 5
+		}
+		response = requests.get(API_BASE, params=as_json(payload))
+
+		print(response.json())
+
+		return response.json
 	
 	@handle_error
 	def logout(self):
