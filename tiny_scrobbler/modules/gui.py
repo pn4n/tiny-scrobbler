@@ -11,11 +11,11 @@ btn_w = 200
 indent = 20
 
 def basic_setup():
-	#font
+	# font
 	with dpg.font_registry():
-		default_font = dpg.add_font(app_path("src/HelveticaNeueCyr-Light.ttf"), 18)
-
-	dpg.bind_font(default_font)
+		with dpg.font(app_path("src/HelveticaNeueCyr-Light.ttf"), 18) as helvetica:
+			dpg.add_font_range_hint(dpg.mvFontRangeHint_Cyrillic)
+			dpg.bind_font(helvetica)
 
 	#theme
 	with dpg.theme() as global_theme:
@@ -140,10 +140,8 @@ def main_window(logout_func):
 
 		return stage
 	
-def load_main_window(data):
-
-	print(data)
-	dpg.configure_item('username', label=data['name'])
-	dpg.set_item_callback('username', lambda:webbrowser.open('https://www.last.fm/user/' + data['name']))
+def load_main_window(username):
+	dpg.configure_item('username', label=username)
+	dpg.set_item_callback('username', lambda:webbrowser.open('https://www.last.fm/user/' + username))
 	dpg.configure_item('header', show=True)
 

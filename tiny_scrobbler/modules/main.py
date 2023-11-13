@@ -20,7 +20,7 @@ def login():
 	dpg.hide_item(login_window)
 	W.hide_status()
 
-	gui.load_main_window( data = lastfm.get_info())
+	gui.load_main_window(lastfm.username)
 	dpg.show_item(main_window)
 	dbus_loop()
 
@@ -46,7 +46,7 @@ with dpg.window(tag='primary window'):
 
 #user is logged in
 if lastfm.username:
-	gui.load_main_window( data = lastfm.get_info())
+	gui.load_main_window(lastfm.username)
 	dpg.show_item(main_window)
 	dbus_loop()
 	# gui.load_main_window( data = lastfm.get_info())
@@ -57,28 +57,6 @@ else:
 	dpg.show_item(login_window)
 	if not lastfm.keys_are_valid:
 		W.set_status(text='Invalid API keys in config.py or config.json', error=True)
-	
-
-# with dpg.window(tag='primary window'):
-
-# 	#user is logged in
-# 	if lastfm.username:
-# 		gui.main_window( data = lastfm.get_info(),
-# 						 logout_func = lastfm.logout )
-# 	else:
-# 		gui.login_window(login, lastfm.keys_are_valid)
-# 		if not lastfm.keys_are_valid:
-# 			W.set_status(text='Invalid API keys in config.py or config.json', error=True)
-# 		# else:
-# 		# 	print('keys are valid')
-# 		# 	if lastfm.username:
-# 		# 		try: 
-# 		# 			print('trying to log in')
-# 		# 			gui.main_window( data = lastfm.get_info(),
-# 		# 				logout_func = lastfm.logout )
-# 		# 		except:
-# 		# 			pass
-
 
 dpg.setup_dearpygui()
 dpg.show_viewport()

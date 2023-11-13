@@ -1,11 +1,9 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
-import threading, time
-import exceptions
-# from last import Lastfm
+import threading
+from window import handle_error
+
 import config
-# from html import auth_result
-# from pylastC import last
 
 class StoppableServer(HTTPServer):
 
@@ -61,7 +59,7 @@ def stop_server():
         httpd.stop()
         httpd = None
 
-@exceptions.handle_error
+@handle_error
 def try_run_server():
 	start_port = 8000 	#1024
 	end_port = 10000 	#49151

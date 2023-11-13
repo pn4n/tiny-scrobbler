@@ -1,22 +1,24 @@
-import json
 import webbrowser
 from hashlib import md5
 import requests
 import time
-import os
+import threading
 
-from exceptions import handle_error
+from window import handle_error
 import config
 from localhost import try_run_server
-import encryption
+from encryption import load_keys
 
 API_BASE = 'https://ws.audioscrobbler.com/2.0/'
 as_json = lambda x: {**x, **{'format': 'json'}}
-CONFIG_FILE = "config.json"
+	
 
 class Lastfm():
 	token = None
 	port = None
+	current_track = None
+	__timer_thread__ = None
+	__lock__ = threading.Lock()
 
 	def __init__(self, api_key, api_secret, session_key=None, username=None):
 		self.__API_KEY__ = api_key
@@ -29,14 +31,16 @@ class Lastfm():
 
 		self.__SESSION_KEY__ = session_key
 		self.username = username
-		self.cache = { 'userInfo': None }
-	
+
+
 	@handle_error
 	def get_signed_object(self, data, secret):
 		data_str = ''.join([f'{i}{data[i]}' for i in sorted(data.keys())]) + secret
 		sig = md5(data_str.encode('utf-8')).hexdigest()
 		return sig
 
+
+#___#___#___   AUTH    ___#___#___#
 
 
 	@handle_error
@@ -95,26 +99,62 @@ class Lastfm():
 		else:
 			raise Exception('Not authorized!')
 
-
-
 	@handle_error
-	def get_info(self):
+	def logout(self):
+		self.__SESSION_KEY__ = None
+		self.username = None
+		# del self.cache['userInfo']
+		self.token = None
 
-		# return "cashed" info if possible
-		if not self.cache['userInfo']:
+		config.TOKEN = None
+
+		load_keys(new_keys={'api_key': self.__API_KEY__,
+					   		'api_secret': self.__API_SECRET__,
+							'session_key': None,
+							'username': None})
+
+		# # !!!	NOT IN USE	!!! #
+		# @handle_error
+		# def request_token(self):
+		# 	payload = {
+		# 			'method': 'auth.getToken',
+		# 			'api_key': self.__API_KEY__,
+		# 		}
+
+		# 	response = requests.get(API_BASE, params=as_json(payload))
+
+		# 	if response.status_code == 200:
+		# 		# json_data = json.loads(response.data.decode('utf-8'))
+		# 		self.token = response.json()['token']
+		# 		print('[request token] token:', self.token)
+		# 	else:
+		# 		raise Exception(f'No token [{str(response.status_code)}]')
 		
-			payload = {
-				'method': 'user.getinfo',
-				'api_key': self.__API_KEY__,
-				'username': self.username
-			}
-			response = requests.get(API_BASE, params=as_json(payload))
+		# # !!!	NOT IN USE	!!! #
+		# def creds_auth(self):
+		# 	payload = {
+		# 		'method': 'auth.getMobileSession',
+		# 		'api_key': self.__API_KEY__,
+		# 		'password': 'PASSWORD',
+		# 		'username': 'USERNAME',
+		# 	}
 
-			print('[req] getInfo',response.json())
+		# 	# DEPRECATED
+		# 	# user = 'USERNAME'
+		# 	# passw = 'PASSWORD'
+		# 	# passw = md5(passw.encode('utf-8')).hexdigest()
+		# 	# payload['authToken'] = md5((user + passw).encode('utf-8')).hexdigest()
 
-			self.cache['userInfo'] = response.json()['user']
-		
-		return self.cache['userInfo']
+		# 	sig = self.get_signed_object(payload, self.__API_SECRET__)
+		# 	payload['api_sig'] = sig
+		# 	response = requests.post(API_BASE, params=as_json(payload))
+		# 	print(response.text)
+		# 	print(response.url)
+
+
+
+#___#___#___   API METHODS    ___#___#___#
+
 	
 	@handle_error
 	def get_recent(self):
@@ -131,111 +171,50 @@ class Lastfm():
 
 		return response.json
 	
-	@handle_error
-	def logout(self):
-		self.__SESSION_KEY__ = None
-		self.username = None
-		del self.cache['userInfo']
-		self.token = None
 
-		config.TOKEN = None
-
-		load_keys(new_keys={'api_key': self.__API_KEY__,
-					   		'api_secret': self.__API_SECRET__,
-							'session_key': None,
-							'username': None})
-
-
-	# # !!!	NOT IN USE	!!! #
 	# @handle_error
-	# def request_token(self):
-	# 	payload = {
-	# 			'method': 'auth.getToken',
+	# def get_info(self):
+
+	# 	# return "cashed" info if possible
+	# 	if not self.cache['userInfo']:
+		
+	# 		payload = {
+	# 			'method': 'user.getinfo',
 	# 			'api_key': self.__API_KEY__,
+	# 			'username': self.username
 	# 		}
+	# 		response = requests.get(API_BASE, params=as_json(payload))
 
-	# 	response = requests.get(API_BASE, params=as_json(payload))
+	# 		print('[req] getInfo',response.json())
 
-	# 	if response.status_code == 200:
-	# 		# json_data = json.loads(response.data.decode('utf-8'))
-	# 		self.token = response.json()['token']
-	# 		print('[request token] token:', self.token)
-	# 	else:
-	# 		raise Exception(f'No token [{str(response.status_code)}]')
-	
-	# # !!!	NOT IN USE	!!! #
-	# def creds_auth(self):
-	# 	payload = {
-	# 		'method': 'auth.getMobileSession',
-	# 		'api_key': self.__API_KEY__,
-	# 		'password': 'PASSWORD',
-	# 		'username': 'USERNAME',
-	# 	}
-
-	# 	# DEPRECATED
-	# 	# user = 'USERNAME'
-	# 	# passw = 'PASSWORD'
-	# 	# passw = md5(passw.encode('utf-8')).hexdigest()
-	# 	# payload['authToken'] = md5((user + passw).encode('utf-8')).hexdigest()
-
-	# 	sig = self.get_signed_object(payload, self.__API_SECRET__)
-	# 	payload['api_sig'] = sig
-	# 	response = requests.post(API_BASE, params=as_json(payload))
-	# 	print(response.text)
-	# 	print(response.url)
+	# 		self.cache['userInfo'] = response.json()['user']
 		
+	# 	return self.cache['userInfo']
 
-def load_keys(new_keys=None):
 
-	if new_keys:
-		# remove config file to create new one
-		try:
-			os.remove(CONFIG_FILE)
-		except:
-			# file does not exist
-			pass
 
-	# check if we have a config file with keys already
-	if os.path.exists(CONFIG_FILE):
-		with open(CONFIG_FILE, "r") as file:
-			config_data = json.load(file)
-			key = config_data["key"].encode()
-			encrypted_api_keys = config_data["data"].encode()
+#___#___#___   SCROBBLING    ___#___#___#
 
-			decrypted_api_keys = json.loads(encryption.decrypt(encrypted_api_keys, key))
-			return decrypted_api_keys
-		
-	else: 
-		
-		if new_keys: # load keys from func argument
-			data = {
-				'api_key': new_keys['api_key'],
-				'api_secret': new_keys['api_secret'],
-				'session_key': new_keys['session_key'],
-				'username': new_keys['username']
-			}
+	def on_new_track(self, track_info):
+		with self.__lock__:
+			if self.__timer_thread__ and self.__timer_thread__.is_alive():
+				self.__timer_thread__.cancel()
 			
-		else: # load keys from config.py
-			data = {
-				'api_key': config.API_KEY,
-				'api_secret': config.API_SECRET,
-				# username and sk should not be recieved from config.py ?
-			}
+			self.current_track = track_info
+			self.__timer_thread__ = threading.Timer(30, self.scrobble_track)
+			self.__timer_thread__.start()
 
-		key, salt = encryption.generate_key()
+	def on_track_stop(self):
+		with self.__lock__:
+			if self.__timer_thread__ and self.__timer_thread__.is_alive():
+				self.__timer_thread__.cancel()
+			self.current_track = None
+	
+	def scrobble_track(self):
+		if self.current_track:
+			# Perform the call to api
+			print(f"Scrobbling: {self.scrobbler.current_track}")
 		
-		encrypted_data = encryption.encrypt(
-			json.dumps(data), key)
 
-		with open(CONFIG_FILE, "w") as file:
-			json.dump({"key": key.decode(), 
-					"salt": salt.decode(), 
-					"data": encrypted_data.decode()}, 
-					file)
-
-		print("API keys stored securely!", encrypted_data)
-
-		print(data)
-		return data
 	
 lastfm = Lastfm(**load_keys())
