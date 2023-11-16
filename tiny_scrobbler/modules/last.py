@@ -88,8 +88,6 @@ class Lastfm():
 
 			# token only can be used once
 			self.token = None
-
-			print(self.username)
 			
 			# save keys with sk encrypted
 			load_keys(new_keys={'api_key': self.__API_KEY__,
@@ -171,6 +169,18 @@ class Lastfm():
 
 		return response.json
 	
+	def track_info(self):
+		payload = {
+			'method': 'user.getRecentTracks',
+			'api_key': self.__API_KEY__,
+			'username': self.username,
+			'limit': 5
+		}
+		response = requests.get(API_BASE, params=as_json(payload))
+
+		print(response.json())
+
+		return response.json
 
 	# @handle_error
 	# def get_info(self):

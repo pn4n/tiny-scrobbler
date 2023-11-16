@@ -89,53 +89,46 @@ def login_window(login_func, is_valid_app):
 
 
 def main_window(logout_func):
+	_, _, _, data1 = dpg.load_image(app_path("src/play.png"))
+	_, _, _, data2 = dpg.load_image(app_path("src/pause.png"))
+	with dpg.texture_registry():
+		texture_id_1 = dpg.add_static_texture(24, 24, data1)
+		texture_id_2 = dpg.add_static_texture(24, 24, data2)
+
+
 	dpg.draw_rectangle( parent='primary window',
 						show=False,
 						tag='header',
 						pmin=[-5, -5],
-						pmax=[W.width, 24],
+						pmax=[W.width, 30],
 						color=(0,0,0, 55),
-						fill=(0,0,0, 55))
+						fill=(0,0,0, 35))
+	
+	dpg.draw_line((-5, 28), (W.width, 28), color=(236,29,29,103), thickness=2)
+	# dpg.draw_rectangle( parent='primary window',
+	# 					show=False,
+	# 					tag='scrobble string',
+	# 					pmin=[0, W.height - 45],
+	# 					pmax=[W.width, W.height],
+	# 					color=(0,0,0, 55),
+	# 					fill=(255, 255, 255, 55))
 	with dpg.group(parent='primary window', show=False) as stage:
 
-			
+		with dpg.group(horizontal=True):
+			dpg.add_image(texture_id_1, tag='play_icon', show=True)
+			dpg.add_image(texture_id_2, tag='pause_icon', show=False)
 
-		with dpg.tab_bar():				
+			dpg.add_button(label='Unknown track', tag='current_track_name')
+			dpg.bind_item_theme('current_track_name', "hyperlinkTheme")
+			dpg.add_text(' : ')
+			dpg.add_button(label='Unknown artist', tag='current_track_artist')
+			dpg.bind_item_theme('current_track_artist', "hyperlinkTheme")
 
-			with dpg.tab(label="Scrobbling"):
+		with dpg.group(horizontal=True):
+			dpg.add_button(label='username', tag='username')
+			dpg.bind_item_theme('username', "hyperlinkTheme")
 
-				with dpg.group(horizontal=True):
-					dpg.add_text("Track:")
-					dpg.add_text("This is the avocado tab!", tag='current_track_name')
-				
-				with dpg.group(horizontal=True):
-					dpg.add_text("Artist:")
-					dpg.add_text("This is the avocado tab!", tag='current_track_artist')
-				
-				with dpg.group(horizontal=True):
-					dpg.add_text("Album:")
-					dpg.add_text("This is the avocado tab!", tag='current_track_album')
-				
-				with dpg.group(horizontal=True):
-					dpg.add_text("Sender:")
-					dpg.add_text("This is the avocado tab!", tag='current_track_sender')
-
-				dpg.add_button(label="Scrobble", width=W.width)
-
-
-
-			
-			with dpg.tab(label="Settings"):
-
-				with dpg.group(horizontal=True):
-					
-					dpg.add_button(label='username', tag='username')
-					dpg.bind_item_theme('username', "hyperlinkTheme")
-
-					dpg.add_button(label='logout', callback=logout_func)
-				
-				dpg.add_text("This is the broccoli tab!")
-
+			dpg.add_button(label='logout', callback=logout_func)
 			
 
 		return stage
@@ -144,4 +137,19 @@ def load_main_window(username):
 	dpg.configure_item('username', label=username)
 	dpg.set_item_callback('username', lambda:webbrowser.open('https://www.last.fm/user/' + username))
 	dpg.configure_item('header', show=True)
+	# dpg.configure_item('scrobble string', show=True)
 
+def update_track(track):
+	dpg.configure_item('current_track_name', label=track['title'])
+	dpg.set_item_callback('current_track_name', lambda:webbrowser.open('https://www.last.fm/user/' + track['title']))
+
+	dpg.configure_item('current_track_artist', label=track['artist'])
+	dpg.set_item_callback('current_track_artist', lambda:webbrowser.open('https://www.last.fm/user/' + track['title']))
+
+def switch_play_icon(is_playing):
+	if is_playing:
+		dpg.configure_item('play_icon', show=True)
+		dpg.configure_item('pause_icon', show=False)
+	else:
+		dpg.configure_item('play_icon', show=False)
+		dpg.configure_item('pause_icon', show=True)
