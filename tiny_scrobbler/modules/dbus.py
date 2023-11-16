@@ -1,10 +1,13 @@
-import dearpygui.dearpygui as dpg
+# import dearpygui.dearpygui as dpg
 import asyncio
 from dbus_next.aio import MessageBus
 from dbus_next import BusType
+from gui import update_track, switch_play_icon
 
 import asyncio
 import threading
+
+import webbrowser
 
 from last import lastfm
 
@@ -16,34 +19,33 @@ CURRENT_PLAYER = None
 
 get_player_name =  lambda x : [k for k,v in PLAYERS.items() if v == x][0]
 
+	
 def message_handler(message):
 	match message.member:
 		case "NameOwnerChanged":
 			name, old_owner, new_owner = message.body # print('name changed', name, 'old_owner: ', old_owner, 'new_owner:',new_owner)
-
-			# the message recieved from a player 
-			if name.startswith("org.mpris.MediaPlayer2."):
+			
+			if name.startswith("org.mpris.MediaPlayer2."):   #the message recieved from a player 
 
 				player_name = name.split('.')[-1]
-
-				# player opened
-				if new_owner != '':
-					print('\nPLAYER [opened]: ', player_name, 'sender', new_owner)
+				
+				if new_owner != '':	  #player opened
+					# print('\nPLAYER [opened]: ', player_name, 'sender', new_owner)
 					PLAYERS[player_name] = new_owner
 					# add to avialable players in gui?
 				
-				# player closed
-				else:	
-					print(f"\n{player_name} has been closed [{old_owner}] ")
+				else:	# player closed
+					# print(f"\n{player_name} has been closed [{old_owner}] ")
 					PLAYERS[player_name] = None
 					# stop scrobbling if initated by this player
 					# lastfm.stop_scrobbler(player=player_name || player=old_owner)
 					lastfm.on_track_stop()
 
-		case "PropertiesChanged":
-			try:
+		case "PropertiesChanged": #probably song changed
+			if 'Metadata' in message.body[1]:
 				# ??? must be only fair for spotify messages
 				metadata_variant = message.body[1]['Metadata']
+				
 				metadata = metadata_variant.value
 
 				if metadata.get('xesam:url').value.split('.')[1] == 'spotify':
@@ -62,9 +64,12 @@ def message_handler(message):
 					# print('\n',message.body)	
 					update_current_track(data, 'spotify')
 				else:
-					print('\n!!! wtf', message.body)
+					
+					print('!!! unknown player', message.body)
+					# get_player_identity(message.sender)
 			
-			except:
+			else: # no metadata in message
+				print(' PROBably playback status',)
 				change_playback_status(message.body, message.sender)
 				
 async def listen_to_dbus():
@@ -77,11 +82,8 @@ async def listen_to_dbus():
 def update_current_track(track, sender):
 	
 	if sender == 'spotify':
-		dpg.set_value("current_track_name", track['title'])
-		dpg.set_value("current_track_artist", track['artist'])
-		dpg.set_value("current_track_album", track['album'])
-		dpg.set_value("current_track_sender", sender)
 
+		update_track(track)
 		#add sender to list
 		
 	else:
@@ -89,12 +91,15 @@ def update_current_track(track, sender):
 		
 			
 def change_playback_status(data, sender):
-	# try:
-		if 'PlaybackStatus' in data[1]:
-			print(f'\n[sender: {sender}]', data[1]['PlaybackStatus'])
-	# except:
-		else:
-			print('\n[def CHNAGE PB] no pb in data[1]: ', data, '\n\t', sender)
+	if 'PlaybackStatus' in data[1]:
+		status = data[1]['PlaybackStatus'].value
+		print(f'[sender: {sender}]', status)
+		switch_play_icon(status == 'Playing')
+		
+		# toggle icon(status)
+	else:
+		# not a playback status
+		print('\n[def CHNAGE PB] no pb in data[1]: ', data, '\n\t', sender)
 
 def dbus_loop():
 
