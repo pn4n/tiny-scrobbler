@@ -7,8 +7,6 @@ from gui import update_track, switch_play_icon
 import asyncio
 import threading
 
-import webbrowser
-
 from last import lastfm
 
 # 'player_name' : sender
@@ -80,10 +78,13 @@ async def listen_to_dbus():
 	await asyncio.Future()
 
 def update_current_track(track, sender):
+	print('\n[def UPDATE_CURRENT_TRACK]: ', track, '\tsender: ', sender)
 	
 	if sender == 'spotify':
 
-		update_track(track)
+		update_track(track, 'spotify')
+		lastfm.on_new_track(track)
+
 		#add sender to list
 		
 	else:
@@ -95,8 +96,8 @@ def change_playback_status(data, sender):
 		status = data[1]['PlaybackStatus'].value
 		print(f'[sender: {sender}]', status)
 		switch_play_icon(status == 'Playing')
+		lastfm.update_playnow(status == 'Playing')
 		
-		# toggle icon(status)
 	else:
 		# not a playback status
 		print('\n[def CHNAGE PB] no pb in data[1]: ', data, '\n\t', sender)

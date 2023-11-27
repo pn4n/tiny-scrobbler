@@ -207,24 +207,68 @@ class Lastfm():
 
 	def on_new_track(self, track_info):
 		with self.__lock__:
+			
 			if self.__timer_thread__ and self.__timer_thread__.is_alive():
 				self.__timer_thread__.cancel()
 			
 			self.current_track = track_info
 			self.__timer_thread__ = threading.Timer(30, self.scrobble_track)
 			self.__timer_thread__.start()
+			self.update_playnow(is_playing=True)
+			
 
 	def on_track_stop(self):
 		with self.__lock__:
 			if self.__timer_thread__ and self.__timer_thread__.is_alive():
 				self.__timer_thread__.cancel()
-			self.current_track = None
+			# self.current_track = None
+			print(f'Scroobbling stopped: {self.current_track}')
 	
 	def scrobble_track(self):
 		if self.current_track:
+			payload = {
+				'method': 'track.scrobble',
+				'artist[0]': self.current_track['artist'],
+				'track[0]': self.current_track['title'],
+				'timestamp[0]': int(time.time()),
+				'api_key': self.__API_KEY__,
+				'sk': self.__SESSION_KEY__,
+			}
+			if self.current_track['album']:
+				payload['album'] = self.current_track['album']
+			signature = self.get_signed_object(payload, self.__API_SECRET__)
+			payload['api_sig'] = signature
+			
+			response = requests.post(API_BASE, params=as_json(payload))
 			# Perform the call to api
-			print(f"Scrobbling: {self.scrobbler.current_track}")
-		
+			print(f"Scrobbling: {response.text}")
 
-	
+	def update_playnow(self, is_playing):
+		
+		if self.current_track:
+
+			if is_playing:
+				artist = self.current_track['artist']
+				track = self.current_track['title']
+			else:
+				# to stop scrobbling (useless)
+				# artist = ''
+				# track = ''
+				self.on_track_stop()
+			
+			payload = {
+				'method': 'track.updateNowPlaying',
+				'artist': artist,
+				'track': track,
+				'api_key': self.__API_KEY__,
+				'sk': self.__SESSION_KEY__,
+			}
+
+			signature = self.get_signed_object(payload, self.__API_SECRET__)
+			payload['api_sig'] = signature
+
+			response = requests.post(API_BASE, params=as_json(payload))
+
+			print(response.json())
+
 lastfm = Lastfm(**load_keys())
